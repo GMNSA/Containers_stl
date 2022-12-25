@@ -15,12 +15,10 @@
       "adapter": "vscode-cpptools",
       "configuration": {
         "request": "launch",
-        "program": "./testMatrixOOP",
+        "program": "./test_containers.out",
         "cwd": "${workspaceRoot}",
         "args": [ "*${args:--update-gadget-config}" ],
-        "justMyCode#json": "${justMyCode:true}",
-        "MIMode" : "lldb",
-        "MIDebuggerPath": "/usr/bin/lldb"
+        "justMyCode#json": "${justMyCode:true}"
       }
     }
   }
