@@ -39,7 +39,7 @@ class List {
   using reference = T &;
   using const_reference = T const &;
   using iterator = Iterator;
-  using const_iterator = IteratorConst;
+  // using const_iterator = IteratorConst;
   using size_type = std::size_t;
   using node_type = Node;
   using const_node_type = Node const;
@@ -83,6 +83,19 @@ class List {
   reference back() { return *end(); }
   void push_front(T value) { insert(begin(), value); }
   void push_back(T value) { insert(end(), value); }
+
+  void erase(iterator pos) noexcept {
+    (void)pos;
+    if (pos != end()) {
+      // TODO(probiuss): unattach point, free, --size
+    }
+  }
+
+  void clear() {
+    if (size_ > 0) {
+      // TODO(probiuss): erase
+    }
+  }
 
   bool empty() { return (end() == begin()); }
 
@@ -190,7 +203,10 @@ class List {
       return tmp;
     }
 
-    Iterator &operator--();
+    Iterator &operator--() {
+      node_ = node_->prev_;
+      return *this;
+    }
     // Iterator operator--(int);
 
     T &operator*() const {
@@ -223,7 +239,7 @@ class List {
 
     IteratorConst() = delete;
     explicit IteratorConst(const_node_type *node) : node_(node) {}
-    explicit IteratorConst(const_iterator &iter) : node_(iter.node_) {}
+    // explicit IteratorConst(const_iterator &iter) : node_(iter.node_) {}
 
     const_node_type *node_;
   };  // IteratorConst
@@ -324,164 +340,6 @@ List<T> &List<T>::operator=(List &&other) {
   }
   return (*this);
 }
-
-// List &operator=(List const &&other);
-
-// -------------------------------------------------------
-
-// template <typename T>
-// typename List<T>::Iterator List<T>::insert(Iterator pos,
-//                                            const_reference value) {
-//   node_type *tmp = new node_type(value);
-//   pos.node_->AddPrev(tmp);
-//   ++size_;
-//
-//   return Iterator(tmp);
-// }
-
-// -------------------------------------------------------
-
-// template <typename T>
-// typename List<T>::reference List<T>::font() {
-//   return *begin();
-// }
-
-// -------------------------------------------------------
-
-// template <typename T>
-// typename List<T>::reference List<T>::back() {
-//   return *end();
-// }
-
-// -------------------------------------------------------
-
-// template <typename T>
-// void List<T>::push_front(T value) {
-//   (void)value;
-//   // auto tmp_node = new Node(value);
-//
-//   // tmp_node->next_ = head_;
-//   // tmp_node->prev_ = tail_;
-//   // head_->prev_ = tmp_node;
-//   // head_ = tmp_node;
-//
-//   // head_iter_ = Iterator(head_);
-//   // ++size_;
-// }
-
-// -------------------------------------------------------
-
-// template <typename T>
-// void List<T>::push_back(T value) {
-//   (void)value;
-//   // if (empty()) {
-//   //   push_front(value);
-//   // } else {
-//   //   auto tmp_node = new Node(value);
-//   //   tmp_node->next_ = tail_;
-//   //   tmp_node->prev_ = tail_->prev_;
-//   //   tail_->prev_->next_ = tmp_node;
-//   //   tail_->prev_ = tmp_node;
-//   //   tail_iter_ = Iterator(tail_);
-//   //   ++size_;
-//   // }
-//   insert(end(), value);
-// }
-
-// -------------------------------------------------------
-
-// template <typename T>
-// unsigned List<T>::size() const {
-//   return size_;
-// }
-
-// -------------------------------------------------------
-
-// template <typename T>
-// void List<T>::resize(unsigned num) {
-//   (void)(num);
-// }
-
-// -------------------------------------------------------
-
-// template <typename T>
-// void List<T>::resize(unsigned from, unsigned to) {
-//   (void)(from);
-//   (void)(to);
-// }
-
-// -------------------------------------------------------
-
-// template <typename T>
-// void List<T>::AllocateMemory() {
-//   // head_ = new Node;
-//   // tail_ = head_;
-//
-//   // // head_->next_ = nullptr;
-//   // // head_->prev_ = nullptr;
-//   // head_->next_ = tail_;
-//   // head_->prev_ = tail_;
-//   // tail_->prev_ = head_;
-//   // tail_->next_ = head_;
-//
-//   // head_iter_ = Iterator(head_);
-//   // tail_iter_ = Iterator(tail_);
-// }
-
-/* ********************  NODE ************************** */
-
-// template <typename T>
-// void List<T>::Node::AddPrev(node_type *node) {
-//   node->next_ = this;
-//   std::cout << "prev: " << prev_ << std::endl;
-//   std::cout << "node->prev: " << node->prev_ << std::endl;
-//   node->prev_ = prev_;
-//   prev_->next_ = node;
-//   prev_ = node;
-//   // TODO(probiuss): check
-// }
-
-/* ********************  ITERATOR  ********************* */
-
-// template <typename T>
-// struct List<T>::Iterator &List<T>::Iterator::operator--() {
-//   if (node_ == nullptr)
-//     throw std::out_of_range("[ERROR] decremented an empty iterator");
-//   if (node_->prev_ == nullptr)
-//     // throw std::out_of_range("[ERROR] tried to decrement past the
-//     beginning");
-//
-//     node_ = node_->prev_;
-// }
-
-// -------------------------------------------------------
-
-// template <typename T>
-// struct List<T>::Iterator &List<T>::Iterator::operator++() noexcept {
-//   node_ = node_->next_;
-//   return *this;
-// }
-
-// -------------------------------------------------------
-
-// template <typename T>
-// struct List<T>::Iterator List<T>::Iterator::operator++(int) noexcept {
-//   iterator tmp(node_);
-//   ++(*this);
-//
-//   return tmp;
-// }
-// template <typename T>
-// struct List<T>::Iterator &List<T>::Iterator::operator++(int) {
-//   if (node_ == nullptr)
-//     throw std::out_of_range("[ERROR] incremented an empty iterator");
-//   if (node_->next_ == nullptr)
-//     throw std::out_of_range("[ERROR] tried to increment too far past the
-//     end");
-//
-//   node_ = node_->next_;
-//   return *this;
-// }
 
 }  // namespace s21
 

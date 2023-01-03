@@ -75,12 +75,74 @@ TEST_F(TestList, Insert) {
 
 // -------------------------------------------------------
 
-TEST_F(TestList, Increment) {
+TEST_F(TestList, Decrement) {
   s21::List<int> lst{1, 2, 3};
+
+  ASSERT_EQ(lst.size(), 3);
   lst.push_back(4);
   lst.push_back(5);
 
   ASSERT_EQ(lst.size(), 5);
+
+  s21::List<int>::iterator iter = lst.begin();
+
+  ASSERT_EQ(*iter, 1);
+
+  --iter;
+  --iter;
+  ASSERT_EQ(*iter, 5);
+
+  --iter;
+  ASSERT_EQ(*iter, 4);
+
+  --iter;
+  ASSERT_EQ(*iter, 3);
+
+  --iter;
+  ASSERT_EQ(*iter, 2);
+
+  --iter;
+  ASSERT_EQ(*iter, 1);
+
+  --iter;
+  --iter;
+  ASSERT_EQ(*iter, 5);
+}
+
+// -------------------------------------------------------
+
+TEST_F(TestList, Increment) {
+  s21::List<int> lst{1, 2, 3};
+
+  ASSERT_EQ(lst.size(), 3);
+  lst.push_back(4);
+  lst.push_back(5);
+
+  ASSERT_EQ(lst.size(), 5);
+
+  s21::List<int>::iterator iter = lst.begin();
+
+  ASSERT_EQ(*iter, 1);
+
+  ++iter;
+  ASSERT_EQ(*iter, 2);
+
+  ++iter;
+  ASSERT_EQ(*iter, 3);
+
+  ++iter;
+  ASSERT_EQ(*iter, 4);
+
+  ++iter;
+  ASSERT_EQ(*iter, 5);
+
+  ++iter;
+  ++iter;
+  ASSERT_EQ(*iter, 1);
+  ASSERT_NE(*iter, 2);
+
+  ++iter;
+  ASSERT_EQ(*iter, 2);
 }
 
 // -------------------------------------------------------
