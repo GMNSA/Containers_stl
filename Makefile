@@ -1,5 +1,5 @@
 CC=gcc
-CXXFLAGS:=-g -std=c++17 -lstdc++ -Wall -Wextra -Werror
+CXXFLAGS:=-g -std=c++17 -lstdc++ -Wall -Wextra -Werror -fsanitize=address
 GCOVFLAGS:=-ftest-coverage -fprofile-arcs
 OS:=
 
@@ -13,13 +13,13 @@ ifeq ($(shell uname), Darwin)
 	OS=Darwin
 endif
 
-HEADERS_DIR:= ./includes
+HEADERS_DIR:= ./includes ./tests/includes
 
 all: test
 
 test: rebuild
 	cd ./tests && rm -rf BUILD && cmake -B ./BUILD && make -C ./BUILD
-	./test_containers.out # --gtest_filter=TestMatrixOOP.ForSingle
+	./test_containers.out # --gtest_filter=TestList.FontAndBack
 	rm -rf ./tests/BUILD
 
 

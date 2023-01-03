@@ -1,10 +1,11 @@
-#ifndef TEST_MATRIX_OOP_H
-#define TEST_MATRIX_OOP_H
+// Copyright 2022
+#ifndef TESTS_INCLUDES_TEST_LIST_H_
+#define TESTS_INCLUDES_TEST_LIST_H_
 
 #include <gtest/gtest.h>
 
 class TestList : public ::testing::Test {
-public:
+ public:
   TestList() {
     // initialization code here
   }
@@ -22,9 +23,8 @@ public:
     // cleanup any pending stuff, but no exceptions allowed
   }
 
-
-private:
+ private:
   // put in any custom data members that you need
 };
 
-#endif // TEST_MATRIX_OOP_H
+#endif  // TESTS_INCLUDES_TEST_LIST_H_
