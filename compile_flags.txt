@@ -1,0 +1,11 @@
+-Wall
+-Werror
+-Wextra
+-std=c++17
+-I
+./includes/
+./tests/includes/
+./includes/list.h
+./tests/includes/test_list.h
+./tests/srcs/test_list.cc
+
