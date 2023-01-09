@@ -3,6 +3,7 @@
 
 #include <gtest/gtest.h>
 
+#include <iterator>
 #include <list>
 
 #include "../../includes/list.h"
@@ -144,22 +145,131 @@ TEST_F(TestList, FontAndBack) {
 // -------------------------------------------------------
 
 TEST_F(TestList, Insert) {
-  // std::list<std::string> orig{"1", "2"};
-  // s21::List<std::string> lst;
+  std::list<int> orig{1, 2, 3};
+  s21::List<int> lst{1, 2, 3};
 
-  // lst.insert(lst.begin(), "1");
-  // lst.insert(lst.begin(), "2");
+  orig.insert(orig.begin(), {8, 9, 2});
+  s21::List<int>::iterator res = lst.insert(lst.begin(), {8, 9, 2});
 
-  //   auto iter = lst.end();
-  //   --iter;
-  //
-  //   std::cout << "iter: " << std::endl;
+  ASSERT_EQ(*res, 8);
+  ASSERT_EQ(lst.font(), 8);
+  ASSERT_EQ(lst.back(), 3);
+  ASSERT_EQ(lst.size(), 6);
 
-  // lst.insert(lst.begin(), "1");
-  // lst.insert(lst.begin(), "2");
-  // lst.insert(lst.begin(), "3");
+  res = lst.insert(lst.begin(), 99);
+  ASSERT_EQ(*res, 99);
+  ASSERT_EQ(lst.size(), 7);
 
-  // std::cout << lst << std::endl;
+  /* *****  ***** */
+
+  res = lst.insert(lst.end(), 98);
+  ASSERT_EQ(*res, 98);
+  ASSERT_EQ(lst.size(), 8);
+  ASSERT_EQ(lst.font(), 99);
+  ASSERT_EQ(lst.back(), 98);
+
+  /* *****  ***** */
+
+  s21::List<int>::iterator iter = lst.begin();
+
+  ++iter;
+
+  res = lst.insert(iter, 87);
+  ASSERT_EQ(lst.size(), 9);
+  ASSERT_NE(*res, 88);
+  ASSERT_EQ(*res, 87);
+  ASSERT_EQ(lst.font(), 99);
+  ASSERT_EQ(lst.back(), 98);
+
+  /* *****  ***** */
+
+  lst.clear();
+  ASSERT_EQ(lst.size(), 0);
+  res = lst.insert(lst.begin(), 1);
+  ASSERT_EQ(lst.size(), 1);
+  ASSERT_EQ(*res, 1);
+  ASSERT_EQ(lst.font(), 1);
+  ASSERT_EQ(lst.back(), 1);
+
+  /* *****  ***** */
+
+  lst.clear();
+  ASSERT_EQ(lst.size(), 0);
+  res = lst.insert(lst.end(), 9);
+  ASSERT_EQ(lst.size(), 1);
+  ASSERT_EQ(*res, 9);
+  ASSERT_EQ(lst.font(), 9);
+  ASSERT_EQ(lst.back(), 9);
+
+  /* *****  ***** */
+
+  lst.clear();
+  lst.insert(lst.begin(), 2, 7);
+}
+
+// -------------------------------------------------------
+
+TEST_F(TestList, InsertCountValue) {
+  s21::List<int> lst{1, 2, 3};
+  std::list<int> orig{1, 2, 3};
+
+  lst.insert(lst.begin(), 2, 7);
+  orig.insert(orig.begin(), 2, 7);
+
+  s21::List<int>::iterator iter = lst.begin();
+  auto orig_iter = orig.begin();
+  orig_iter++;
+  orig_iter++;
+  ++iter;
+  ++iter;
+
+  std::advance(iter, 0);
+  std::advance(orig_iter, 0);
+  ASSERT_EQ(*iter, *orig_iter);
+
+  std::advance(orig_iter, 2);
+  std::advance(iter, 2);
+  ASSERT_EQ(*iter, *orig_iter);
+
+  std::advance(orig_iter, 1);  // trash
+  std::advance(iter, 1);       // trash
+
+  std::advance(orig_iter, 4);
+  std::advance(iter, 4);
+  ASSERT_EQ(*iter, *orig_iter);
+
+  lst.insert(lst.begin(), 8, 3);
+  orig.insert(orig.begin(), 8, 3);
+  ASSERT_EQ(*iter, *orig_iter);
+
+  std::advance(orig_iter, 6);
+  std::advance(iter, 6);
+  ASSERT_EQ(*iter, *orig_iter);
+
+  std::advance(orig_iter, 2);
+  std::advance(iter, 2);
+  ASSERT_EQ(*iter, *orig_iter);
+
+  std::advance(orig_iter, 1);
+  std::advance(iter, 1);
+  ASSERT_EQ(*iter, *orig_iter);
+
+  std::advance(orig_iter, -9);
+  std::advance(iter, -9);
+  ASSERT_EQ(*iter, *orig_iter);
+
+  /* *****  ***** */
+
+  lst.insert(lst.begin(), {11, 12, 13});
+  orig.insert(orig.begin(), {11, 12, 13});
+
+  std::advance(orig_iter, 1);
+  std::advance(iter, 1);
+  ASSERT_EQ(*iter, *orig_iter);
+
+  std::advance(orig_iter, 3);
+  std::advance(iter, 3);
+  ASSERT_EQ(*iter, *orig_iter);
 }
 
 // -------------------------------------------------------

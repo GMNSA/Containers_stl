@@ -32,11 +32,14 @@ class List {
   struct Node;
   struct Iterator;
   struct IteratorConst;
+  struct InputIterator;
 
  public:
   using value_type = T;
+  using pointer = value_type *;
+  using difference_type = std::ptrdiff_t;
   using const_value_type = T const;
-  using value_reference = T &;
+  using reference = T &;
   using const_reference = T const &;
   using iterator = Iterator;
   // using const_iterator = IteratorConst;
@@ -94,12 +97,15 @@ class List {
   }
 
   /**
-   * @brief
+   * @brief Insert the elements at any position of list. This function takes 2
+   *            elements, position and value to insert.
    *
-   * @param pos
-   * @param value
+   * @param pos -> Position in the container where the new elements are
+   *                    inserted.
+   * @param value -> Valueto be copied (or moved) to the inserted elements.
    *
-   * @return
+   * @return -> This function returns an interator
+   *                 that points to the first of the newly inserted elements.
    */
   Iterator insert(iterator pos,
                   const_reference value) {  // TODO(probiuss): change iterator
@@ -111,10 +117,68 @@ class List {
     return Iterator(tmp);
   }
 
-  value_reference font() { return *begin(); }
-  value_reference back() { return *end(); }
-  void push_front(T value) { insert(begin(), value); }
-  void push_back(T value) { insert(end(), value); }
+  /**
+   * @brief Insert the elements at any position of list. This function takes 3
+   *            elements, position, number of elements to insert
+   *            and value to insert. If not mentioned,
+   *            number of elements is default set to 1.
+   *
+   * @param pos -> Position in the container where the new elements are
+   *                    inserted.
+   * @param n_elem -> Number of elements to insert. Each elements is initizlized
+   *                       to a copy of val.
+   * @param value -> Valueto be copied (or moved) to the inserted elements.
+   *
+   *
+   * @return -> This function returns an interator
+   *                 that points to the first of the newly inserted elements
+   */
+  Iterator insert(iterator pos, size_t n_elem, const_reference value) {
+    node_type *res = new node_type(value);
+    pos.node_->AddPrev(res);
+    ++size_;
+    --n_elem;
+
+    for (; n_elem > 0; --n_elem) {
+      node_type *tmp = new node_type(value);
+      pos.node_->AddPrev(tmp);
+      ++size_;
+    }
+
+    return Iterator(res);
+  }
+
+  /**
+   * @brief Insert the elements at any position of list. This function takes 2
+   *            elements, position and values to insert.
+   *
+   *            example -- tmp_list.insert(iter.begin(), {1, 2, 3});
+   *
+   * @param pos -> Position in the container where the new elements are
+   *                    inserted.
+   * @param value -> Values to be copied (or moved) to the inserted elements.
+   *
+   * @return -> This function returns an interator
+   *                 that points to the first of the newly inserted elements
+   */
+  Iterator insert(iterator pos, std::initializer_list<value_type> values) {
+    node_type *res = nullptr;
+    for (auto const &value : values) {
+      node_type *tmp = new node_type(value);
+      if (res == nullptr) {
+        res = tmp;
+      }
+      pos.node_->AddPrev(tmp);
+      ++size_;
+    }
+
+    return Iterator(res);
+  }
+
+  reference font() { return *begin(); }
+  reference back() { return *(--end()); }
+  void push_front(value_type value) { insert(begin(), value); }
+  void push_back(value_type value) { insert(end(), value); }
 
   /**
    * @brief Delete elements from a list container.
@@ -226,11 +290,11 @@ class List {
    */
   struct Iterator {
     // TODO(probiuss): desctiprion below.
-    // using iterator_category = std::bidirectional_iterator_tag;
-    using difference_type = std::ptrdiff_t;
+    using iterator_category = std::bidirectional_iterator_tag;
     using value_type = List::value_type;
+    using difference_type = std::ptrdiff_t;
     using pointer = value_type *;
-    using value_reference = value_type &;
+    using reference = value_type &;
 
     // Dont't use an empty iterator.
     Iterator() = delete;
@@ -273,9 +337,10 @@ class List {
       node_ = node_->prev_;
       return *this;
     }
+
     // Iterator operator--(int);
 
-    value_reference operator*() const {
+    reference operator*() const {
       if (node_ == 0)
         throw std::out_of_range(
             "[ERROR] tried to dereference an empty iterator");
@@ -301,7 +366,7 @@ class List {
     using difference_type = std::ptrdiff_t;
     using value_type = List::value_type;
     using pointer = const_value_type *;
-    using value_reference = const_value_type &;
+    using reference = const_value_type &;
 
     IteratorConst() = delete;
     explicit IteratorConst(const_node_type *node) : node_(node) {}
