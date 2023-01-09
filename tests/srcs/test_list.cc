@@ -21,6 +21,73 @@ TEST_F(TestList, Foo1) { ASSERT_EQ(1, 1); }
 
 // -------------------------------------------------------
 
+TEST_F(TestList, Assign) {
+  std::list<int> orig{1, 2, 3};
+  s21::List<int> lst{1, 2, 3};
+
+  auto print = [&]() {
+    for (auto const &val : orig) std::cout << val << std::endl;
+    std::cout << "\n" << std::endl;
+  };
+
+  orig.assign({3, 4, 5});
+  // lst.assign({3, 4, 5});
+
+  print();
+  std::cout << lst << std::endl;
+}
+
+// -------------------------------------------------------
+
+TEST_F(TestList, Max_size) {
+  std::list<int> orig{1, 2, 3};
+  s21::List<int> lst{1, 2, 3};
+
+  ASSERT_EQ(orig.max_size(), lst.max_size());
+
+  /* *****  ***** */
+
+  std::list<std::string> orig1{"there", "is", "no", "spoon."};
+  s21::List<std::string> lst1{"there", "is", "no", "spoon."};
+
+  ASSERT_EQ(orig1.max_size(), lst1.max_size());
+
+  /* *****  ***** */
+
+  std::list<double> orig2{8.0012, 889.43};
+  s21::List<double> lst2{8.0012, 889.43};
+
+  ASSERT_EQ(orig2.max_size(), lst2.max_size());
+
+  /* *****  ***** */
+
+  std::list<float> orig3;
+  s21::List<float> lst3;
+
+  ASSERT_EQ(orig3.max_size(), lst3.max_size());
+}
+
+// -------------------------------------------------------
+
+TEST_F(TestList, ReverseIterator) {
+  // TODO(probiuss): Release and tests reverse_iterator
+  // std::list<int> orig{1, 2, 3};
+  // s21::List<int> lst{1, 2, 3};
+
+  // std::list<int>::reverse_iterator orig_iter = orig.rbegin();
+  // s21::List<int>::reverse_iterator iter = lst.rbegin();
+
+  // std::cout << "iter: " << *iter << std::endl;
+  // std::cout << "orig iter: " << *orig_iter << std::endl;
+  // ASSERT_EQ(*iter, *orig_iter);
+
+  // orig_iter = orig.rend();
+  // iter = lst.rend();
+  // ASSERT_EQ(*iter, *orig_iter);
+}
+
+// -------------------------------------------------------
+
 TEST_F(TestList, Erase) {
   s21::List<int> lst{1, 2, 3};
 
