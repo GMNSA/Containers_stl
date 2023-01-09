@@ -131,8 +131,8 @@ class List {
   }
 
   void clear() {
-    if (size_ > 0) {
-      // TODO(probiuss): erase
+    for (auto iter = begin(); size_ > 0 || begin() != end(); iter = begin()) {
+      erase(iter);
     }
   }
 

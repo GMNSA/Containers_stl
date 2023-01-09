@@ -23,8 +23,6 @@ TEST_F(TestList, Foo1) { ASSERT_EQ(1, 1); }
 TEST_F(TestList, Erase) {
   s21::List<int> lst{1, 2, 3};
 
-  print_list(lst);
-
   s21::List<int>::iterator lst_iter = lst.begin();
 
   ASSERT_EQ(*lst_iter, 1);
@@ -41,15 +39,11 @@ TEST_F(TestList, Erase) {
   ASSERT_EQ(*lst_iter, 3);
   ASSERT_EQ(lst.size(), 2);
 
-  print_list(lst);
-
   lst_iter = lst.begin();
 
   lst.erase(lst_iter);
 
   ASSERT_EQ(lst.font(), 3);
-
-  print_list(lst);
 
   lst_iter = lst.begin();
 
@@ -62,6 +56,45 @@ TEST_F(TestList, Erase) {
   lst.erase(lst_iter);  // Orignal erase last point (head, end) !!!
 
   ASSERT_EQ(lst.begin(), lst.end());
+}
+
+TEST_F(TestList, Clear) {
+  s21::List<int> lst{1, 2, 3};
+
+  ASSERT_EQ(lst.size(), 3);
+
+  lst.clear();
+  ASSERT_EQ(lst.size(), 0);
+  ASSERT_EQ(lst.begin(), lst.end());
+  ASSERT_EQ(lst.size(), 0);
+
+  /* *****  ***** */
+
+  lst.push_back(8);
+
+  ASSERT_NE(lst.size(), 0);
+  ASSERT_EQ(lst.font(), 8);
+  ASSERT_EQ(lst.size(), 1);
+
+  lst.clear();
+  ASSERT_EQ(lst.size(), 0);
+  ASSERT_EQ(lst.begin(), lst.end());
+  ASSERT_EQ(lst.size(), 0);
+
+  /* *****  ***** */
+
+  lst.push_back(3);
+  lst.push_back(7);
+  lst.push_back(6);
+
+  ASSERT_NE(lst.size(), 0);
+  ASSERT_EQ(lst.font(), 3);
+  ASSERT_EQ(lst.size(), 3);
+
+  lst.clear();
+  ASSERT_EQ(lst.size(), 0);
+  ASSERT_EQ(lst.begin(), lst.end());
+  ASSERT_EQ(lst.size(), 0);
 }
 
 // -------------------------------------------------------
