@@ -29,7 +29,8 @@ TEST_F(TestList, Erase) {
   ++lst_iter;
   ASSERT_EQ(*lst_iter, 2);
 
-  lst.erase(lst_iter);
+  lst_iter = lst.erase(lst_iter);
+  ASSERT_EQ(*lst_iter, 3);
 
   lst_iter = lst.begin();
   ASSERT_EQ(*lst_iter, 1);
@@ -41,14 +42,16 @@ TEST_F(TestList, Erase) {
 
   lst_iter = lst.begin();
 
-  lst.erase(lst_iter);
-
+  lst_iter = lst.erase(lst_iter);
+  ASSERT_EQ(*lst_iter, 3);
   ASSERT_EQ(lst.font(), 3);
 
   lst_iter = lst.begin();
 
-  lst.erase(lst_iter);
+  lst_iter = lst.erase(lst_iter);
 
+  ASSERT_EQ(lst_iter, lst.end());
+  ASSERT_EQ(lst_iter, lst.begin());
   ASSERT_EQ(lst.begin(), lst.end());
 
   lst_iter = lst.begin();

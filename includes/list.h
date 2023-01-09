@@ -116,8 +116,23 @@ class List {
   void push_front(T value) { insert(begin(), value); }
   void push_back(T value) { insert(end(), value); }
 
-  void erase(iterator pos) noexcept {
+  /**
+   * @brief Delete elements from a list container.
+   *                Decrement (size)
+   *
+   * @param pos -> This parameter is used when the function is used to delete a
+   *                    single element. This parameter refers to an iterator
+   *                    which points to the element which is need to be erased
+   *                    from the list container.
+   *
+   * @return -> This function returns an iterator pointing to the element
+   *                in the list container which followed the last
+   *                element erased from the list container.
+   */
+  Iterator erase(iterator pos) noexcept {
+    iterator res = pos;
     if (pos != end()) {
+      ++res;
       node_type *tmp = pos.node_;
       pos.node_->prev_->next_ = pos.node_->next_;
       pos.node_->next_->prev_ = pos.node_->prev_;
@@ -128,6 +143,8 @@ class List {
       tmp = nullptr;
       --size_;
     }
+
+    return (res);
   }
 
   void clear() {
