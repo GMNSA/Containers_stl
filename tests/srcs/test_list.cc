@@ -3,6 +3,7 @@
 
 #include <gtest/gtest.h>
 
+#include <iterator>
 #include <list>
 
 #include "../../includes/list.h"
@@ -10,9 +11,165 @@
 // #include <sstream>
 // #include <string>
 
+template <typename T>
+void print_list(T const &lst) {
+  std::cout << "\n" << std::endl;
+  for (auto const &value : lst) std::cout << value << std::endl;
+}
+
 TEST_F(TestList, Foo1) { ASSERT_EQ(1, 1); }
 
 // -------------------------------------------------------
+
+TEST_F(TestList, Assign) {
+  std::list<int> orig{1, 2, 3};
+  s21::List<int> lst{1, 2, 3};
+
+  auto print = [&]() {
+    for (auto const &val : orig) std::cout << val << std::endl;
+    std::cout << "\n" << std::endl;
+  };
+
+  orig.assign({3, 4, 5});
+  // lst.assign({3, 4, 5});
+
+  print();
+  std::cout << lst << std::endl;
+}
+
+// -------------------------------------------------------
+
+TEST_F(TestList, Max_size) {
+  std::list<int> orig{1, 2, 3};
+  s21::List<int> lst{1, 2, 3};
+
+  ASSERT_EQ(orig.max_size(), lst.max_size());
+
+  /* *****  ***** */
+
+  std::list<std::string> orig1{"there", "is", "no", "spoon."};
+  s21::List<std::string> lst1{"there", "is", "no", "spoon."};
+
+  ASSERT_EQ(orig1.max_size(), lst1.max_size());
+
+  /* *****  ***** */
+
+  std::list<double> orig2{8.0012, 889.43};
+  s21::List<double> lst2{8.0012, 889.43};
+
+  ASSERT_EQ(orig2.max_size(), lst2.max_size());
+
+  /* *****  ***** */
+
+  std::list<float> orig3;
+  s21::List<float> lst3;
+
+  ASSERT_EQ(orig3.max_size(), lst3.max_size());
+}
+
+// -------------------------------------------------------
+
+TEST_F(TestList, ReverseIterator) {
+  // TODO(probiuss): Release and tests reverse_iterator
+  // std::list<int> orig{1, 2, 3};
+  // s21::List<int> lst{1, 2, 3};
+
+  // std::list<int>::reverse_iterator orig_iter = orig.rbegin();
+  // s21::List<int>::reverse_iterator iter = lst.rbegin();
+
+  // std::cout << "iter: " << *iter << std::endl;
+  // std::cout << "orig iter: " << *orig_iter << std::endl;
+  // ASSERT_EQ(*iter, *orig_iter);
+
+  // orig_iter = orig.rend();
+  // iter = lst.rend();
+  // ASSERT_EQ(*iter, *orig_iter);
+}
+
+// -------------------------------------------------------
+
+TEST_F(TestList, Erase) {
+  s21::List<int> lst{1, 2, 3};
+
+  s21::List<int>::iterator lst_iter = lst.begin();
+
+  ASSERT_EQ(*lst_iter, 1);
+  ++lst_iter;
+  ASSERT_EQ(*lst_iter, 2);
+
+  lst_iter = lst.erase(lst_iter);
+  ASSERT_EQ(*lst_iter, 3);
+
+  lst_iter = lst.begin();
+  ASSERT_EQ(*lst_iter, 1);
+
+  ++lst_iter;
+
+  ASSERT_EQ(*lst_iter, 3);
+  ASSERT_EQ(lst.size(), 2);
+
+  lst_iter = lst.begin();
+
+  lst_iter = lst.erase(lst_iter);
+  ASSERT_EQ(*lst_iter, 3);
+  ASSERT_EQ(lst.font(), 3);
+
+  lst_iter = lst.begin();
+
+  lst_iter = lst.erase(lst_iter);
+
+  ASSERT_EQ(lst_iter, lst.end());
+  ASSERT_EQ(lst_iter, lst.begin());
+  ASSERT_EQ(lst.begin(), lst.end());
+
+  lst_iter = lst.begin();
+
+  lst.erase(lst_iter);  // Orignal erase last point (head, end) !!!
+
+  ASSERT_EQ(lst.begin(), lst.end());
+}
+
+TEST_F(TestList, Clear) {
+  s21::List<int> lst{1, 2, 3};
+
+  ASSERT_EQ(lst.size(), 3);
+
+  lst.clear();
+  ASSERT_EQ(lst.size(), 0);
+  ASSERT_EQ(lst.begin(), lst.end());
+  ASSERT_EQ(lst.size(), 0);
+
+  /* *****  ***** */
+
+  lst.push_back(8);
+
+  ASSERT_NE(lst.size(), 0);
+  ASSERT_EQ(lst.font(), 8);
+  ASSERT_EQ(lst.size(), 1);
+
+  lst.clear();
+  ASSERT_EQ(lst.size(), 0);
+  ASSERT_EQ(lst.begin(), lst.end());
+  ASSERT_EQ(lst.size(), 0);
+
+  /* *****  ***** */
+
+  lst.push_back(3);
+  lst.push_back(7);
+  lst.push_back(6);
+
+  ASSERT_NE(lst.size(), 0);
+  ASSERT_EQ(lst.font(), 3);
+  ASSERT_EQ(lst.size(), 3);
+
+  lst.clear();
+  ASSERT_EQ(lst.size(), 0);
+  ASSERT_EQ(lst.begin(), lst.end());
+  ASSERT_EQ(lst.size(), 0);
+}
+
+// -------------------------------------------------------
+
 TEST_F(TestList, IsEmpty) {
   s21::List<int> lst;
   s21::List<int> lst2;
@@ -55,22 +212,131 @@ TEST_F(TestList, FontAndBack) {
 // -------------------------------------------------------
 
 TEST_F(TestList, Insert) {
-  // std::list<std::string> orig{"1", "2"};
-  // s21::List<std::string> lst;
+  std::list<int> orig{1, 2, 3};
+  s21::List<int> lst{1, 2, 3};
 
-  // lst.insert(lst.begin(), "1");
-  // lst.insert(lst.begin(), "2");
+  orig.insert(orig.begin(), {8, 9, 2});
+  s21::List<int>::iterator res = lst.insert(lst.begin(), {8, 9, 2});
 
-  //   auto iter = lst.end();
-  //   --iter;
-  //
-  //   std::cout << "iter: " << std::endl;
+  ASSERT_EQ(*res, 8);
+  ASSERT_EQ(lst.font(), 8);
+  ASSERT_EQ(lst.back(), 3);
+  ASSERT_EQ(lst.size(), 6);
 
-  // lst.insert(lst.begin(), "1");
-  // lst.insert(lst.begin(), "2");
-  // lst.insert(lst.begin(), "3");
+  res = lst.insert(lst.begin(), 99);
+  ASSERT_EQ(*res, 99);
+  ASSERT_EQ(lst.size(), 7);
 
-  // std::cout << lst << std::endl;
+  /* *****  ***** */
+
+  res = lst.insert(lst.end(), 98);
+  ASSERT_EQ(*res, 98);
+  ASSERT_EQ(lst.size(), 8);
+  ASSERT_EQ(lst.font(), 99);
+  ASSERT_EQ(lst.back(), 98);
+
+  /* *****  ***** */
+
+  s21::List<int>::iterator iter = lst.begin();
+
+  ++iter;
+
+  res = lst.insert(iter, 87);
+  ASSERT_EQ(lst.size(), 9);
+  ASSERT_NE(*res, 88);
+  ASSERT_EQ(*res, 87);
+  ASSERT_EQ(lst.font(), 99);
+  ASSERT_EQ(lst.back(), 98);
+
+  /* *****  ***** */
+
+  lst.clear();
+  ASSERT_EQ(lst.size(), 0);
+  res = lst.insert(lst.begin(), 1);
+  ASSERT_EQ(lst.size(), 1);
+  ASSERT_EQ(*res, 1);
+  ASSERT_EQ(lst.font(), 1);
+  ASSERT_EQ(lst.back(), 1);
+
+  /* *****  ***** */
+
+  lst.clear();
+  ASSERT_EQ(lst.size(), 0);
+  res = lst.insert(lst.end(), 9);
+  ASSERT_EQ(lst.size(), 1);
+  ASSERT_EQ(*res, 9);
+  ASSERT_EQ(lst.font(), 9);
+  ASSERT_EQ(lst.back(), 9);
+
+  /* *****  ***** */
+
+  lst.clear();
+  lst.insert(lst.begin(), 2, 7);
+}
+
+// -------------------------------------------------------
+
+TEST_F(TestList, InsertCountValue) {
+  s21::List<int> lst{1, 2, 3};
+  std::list<int> orig{1, 2, 3};
+
+  lst.insert(lst.begin(), 2, 7);
+  orig.insert(orig.begin(), 2, 7);
+
+  s21::List<int>::iterator iter = lst.begin();
+  auto orig_iter = orig.begin();
+  orig_iter++;
+  orig_iter++;
+  ++iter;
+  ++iter;
+
+  std::advance(iter, 0);
+  std::advance(orig_iter, 0);
+  ASSERT_EQ(*iter, *orig_iter);
+
+  std::advance(orig_iter, 2);
+  std::advance(iter, 2);
+  ASSERT_EQ(*iter, *orig_iter);
+
+  std::advance(orig_iter, 1);  // trash
+  std::advance(iter, 1);       // trash
+
+  std::advance(orig_iter, 4);
+  std::advance(iter, 4);
+  ASSERT_EQ(*iter, *orig_iter);
+
+  lst.insert(lst.begin(), 8, 3);
+  orig.insert(orig.begin(), 8, 3);
+  ASSERT_EQ(*iter, *orig_iter);
+
+  std::advance(orig_iter, 6);
+  std::advance(iter, 6);
+  ASSERT_EQ(*iter, *orig_iter);
+
+  std::advance(orig_iter, 2);
+  std::advance(iter, 2);
+  ASSERT_EQ(*iter, *orig_iter);
+
+  std::advance(orig_iter, 1);
+  std::advance(iter, 1);
+  ASSERT_EQ(*iter, *orig_iter);
+
+  std::advance(orig_iter, -9);
+  std::advance(iter, -9);
+  ASSERT_EQ(*iter, *orig_iter);
+
+  /* *****  ***** */
+
+  lst.insert(lst.begin(), {11, 12, 13});
+  orig.insert(orig.begin(), {11, 12, 13});
+
+  std::advance(orig_iter, 1);
+  std::advance(iter, 1);
+  ASSERT_EQ(*iter, *orig_iter);
+
+  std::advance(orig_iter, 3);
+  std::advance(iter, 3);
+  ASSERT_EQ(*iter, *orig_iter);
 }
 
 // -------------------------------------------------------

@@ -17,6 +17,8 @@
 
 #include <iostream>
 #include <iterator>
+#include <limits>
+#include <memory>
 #include <ostream>
 #include <stdexcept>
 #include <utility>
@@ -25,34 +27,95 @@ namespace s21 {
 
 // -------------------------------------------------------
 
-template <typename T>
-
+template <typename T, typename A = std::allocator<T>>
 class List {
  private:
   struct Node;
   struct Iterator;
   struct IteratorConst;
+  struct InputIterator;
+  struct IteratorReverse;
 
  public:
   using value_type = T;
-  using const_value_type = T const;
+  // using allocator_type Allocator
+  using size_type = std::size_t;
+  using difference_type = std::ptrdiff_t;
   using reference = T &;
   using const_reference = T const &;
+  using pointer = value_type *;
+  using const_pointer = value_type const *;
   using iterator = Iterator;
+  using reverse_iterator = IteratorReverse;
+  using node_allocator =
+      typename std::allocator_traits<A>::template rebind_alloc<Node>;
   // using const_iterator = IteratorConst;
-  using size_type = std::size_t;
+  // using reverse_iterator = std::reverse_iterator<iterator>;
+  // using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+  /* *****  ***** */
+
+  using const_value_type = T const;
   using node_type = Node;
   using const_node_type = Node const;
 
  public:
-  List();
-  explicit List(size_type size);
-  List(const List &other);
-  List(std::initializer_list<T> init_list);
+  List() : head_(new node_type{}), size_(0U) {}
 
-  List &operator=(List const &other);
-  List &operator=(List &&other);
-  ~List();
+  explicit List(size_type size) {
+    while (size > 0) {
+      push_back(value_type());
+      --size;
+    }
+  }
+
+  List(const List &other) {
+    for (auto value : other) {
+      push_back(value);
+      ++size_;
+    }
+  }
+
+  List(List &&other) noexcept {
+    head_ = other.head_;
+    size_ = other.size_;
+    other.head_ = nullptr;
+    other.size_ = 0;
+  }
+
+  List(std::initializer_list<value_type> init_list)
+      : head_(new Node()), size_(0U) {
+    for (auto const &item : init_list) {
+      push_back(item);
+    }
+  }
+
+  List &operator=(List const &other) {
+    size_ = 0;
+    head_ = nullptr;
+    (void)other;
+    return (*this);
+  }
+
+  List &operator=(List &&other) noexcept {
+    if (this != &other) {
+      Destroy();
+      head_ = other.head_;
+      size_ = other.size_;
+      other.head_ = nullptr;
+      other.size_ = 0;
+    }
+    return (*this);
+  }
+
+  ~List() { Destroy(); }
+
+  // void assign(std::initializer_list<value_type> lst);
+
+  // void assign(size_type n_elem, value_type const &val);
+  // void assign(InputIterator first, InputIterator last);
+
+  // -------------------------------------------------------
 
   friend std::ostream &operator<<(std::ostream &os, List const &lst) {
     for (auto const &value : lst) {
@@ -61,13 +124,18 @@ class List {
     return (os);
   }
 
+  // -------------------------------------------------------
+
   /**
-   * @brief
+   * @brief Insert the elements at any position of list. This function takes 2
+   *            elements, position and value to insert.
    *
-   * @param pos
-   * @param value
+   * @param pos -> Position in the container where the new elements are
+   *                    inserted.
+   * @param value -> Valueto be copied (or moved) to the inserted elements.
    *
-   * @return
+   * @return -> This function returns an interator
+   *                 that points to the first of the newly inserted elements.
    */
   Iterator insert(iterator pos,
                   const_reference value) {  // TODO(probiuss): change iterator
@@ -79,47 +147,170 @@ class List {
     return Iterator(tmp);
   }
 
-  reference font() { return *begin(); }
-  reference back() { return *end(); }
-  void push_front(T value) { insert(begin(), value); }
-  void push_back(T value) { insert(end(), value); }
+  // -------------------------------------------------------
 
-  void erase(iterator pos) noexcept {
-    (void)pos;
-    if (pos != end()) {
-      // TODO(probiuss): unattach point, free, --size
+  /**
+   * @brief Insert the elements at any position of list. This function takes 3
+   *            elements, position, number of elements to insert
+   *            and value to insert. If not mentioned,
+   *            number of elements is default set to 1.
+   *
+   * @param pos -> Position in the container where the new elements are
+   *                    inserted.
+   * @param n_elem -> Number of elements to insert. Each elements is initizlized
+   *                       to a copy of val.
+   * @param value -> Valueto be copied (or moved) to the inserted elements.
+   *
+   *
+   * @return -> This function returns an interator
+   *                 that points to the first of the newly inserted elements
+   */
+  Iterator insert(iterator pos, size_type n_elem, const_reference value) {
+    node_type *res = new node_type(value);
+    pos.node_->AddPrev(res);
+    ++size_;
+    --n_elem;
+
+    for (; n_elem > 0; --n_elem) {
+      node_type *tmp = new node_type(value);
+      pos.node_->AddPrev(tmp);
+      ++size_;
     }
+
+    return Iterator(res);
   }
+
+  // -------------------------------------------------------
+
+  /**
+   * @brief Insert the elements at any position of list. This function takes 2
+   *            elements, position and values to insert.
+   *
+   *            example -- tmp_list.insert(iter.begin(), {1, 2, 3});
+   *
+   * @param pos -> Position in the container where the new elements are
+   *                    inserted.
+   * @param value -> Values to be copied (or moved) to the inserted elements.
+   *
+   * @return -> This function returns an interator
+   *                 that points to the first of the newly inserted elements
+   */
+  Iterator insert(iterator pos, std::initializer_list<value_type> values) {
+    node_type *res = nullptr;
+    for (auto const &value : values) {
+      node_type *tmp = new node_type(value);
+      if (res == nullptr) {
+        res = tmp;
+      }
+      pos.node_->AddPrev(tmp);
+      ++size_;
+    }
+
+    return Iterator(res);
+  }
+
+  // -------------------------------------------------------
+
+  reference font() { return *begin(); }
+  reference back() { return *(--end()); }
+  void push_front(value_type value) { insert(begin(), value); }
+  void push_back(value_type value) { insert(end(), value); }
+
+  // -------------------------------------------------------
+
+  /**
+   * @brief Delete elements from a list container.
+   *                Decrement (size)
+   *
+   * @param pos -> This parameter is used when the function is used to delete a
+   *                    single element. This parameter refers to an iterator
+   *                    which points to the element which is need to be erased
+   *                    from the list container.
+   *
+   * @return -> This function returns an iterator pointing to the element
+   *                in the list container which followed the last
+   *                element erased from the list container.
+   */
+  Iterator erase(iterator pos) noexcept {
+    iterator res = pos;
+    if (pos != end()) {
+      ++res;
+      node_type *tmp = pos.node_;
+      pos.node_->prev_->next_ = pos.node_->next_;
+      pos.node_->next_->prev_ = pos.node_->prev_;
+
+      tmp->prev_ = nullptr;
+      tmp->next_ = nullptr;
+      delete tmp;
+      tmp = nullptr;
+      --size_;
+    }
+
+    return (res);
+  }
+
+  // -------------------------------------------------------
 
   void clear() {
-    if (size_ > 0) {
-      // TODO(probiuss): erase
+    for (auto iter = begin(); size_ > 0 || begin() != end(); iter = begin()) {
+      erase(iter);
     }
   }
 
-  bool empty() { return (end() == begin()); }
+  // -------------------------------------------------------
 
+  /* ** ***** Capacity ***** ** */
+
+  bool empty() { return (end() == begin()); }
   unsigned size() const { return size_; }
+  size_type max_size() const { return allocator.max_size(); }
+
+  /* ** ***** ******** ***** ** */
+
   void resize(unsigned num) { (void)num; }
   void resize(unsigned from, unsigned to) {
     (void)from;
     (void)to;
   }
-  void AllocateMemory();
 
-  /* *****  ***** */
+  // -------------------------------------------------------
 
   inline Iterator begin() const {
     return Iterator(head_->next_);
     // return head_iter_;
   }
+
+  inline reverse_iterator rbegin() const {
+    return IteratorReverse(head_->prev_);
+    // return head_iter_;
+  }
+
   inline Iterator end() const {
     return Iterator(head_);
     // return tail_iter_;
   }
 
+  inline reverse_iterator rend() const {
+    return IteratorReverse(head_->next_);
+    // return tail_iter_;
+  }
+
+  // -------------------------------------------------------
+
  private:
-  void destroy();
+  void Destroy() {
+    node_type *tmp_type = begin().node_;
+    auto finish = end().node_;
+
+    for (auto start = tmp_type; start != finish;) {
+      start = start->next_;
+      delete tmp_type;
+      tmp_type = start;
+    }
+    delete tmp_type;
+  }
+
+  // -------------------------------------------------------
 
   /**
    * @brief A node of a doubly linked list.
@@ -148,6 +339,8 @@ class List {
     node_type *prev_;
   };
 
+  // -------------------------------------------------------
+
   /**
    * @brief Iterator structure for a list.
    *
@@ -160,9 +353,9 @@ class List {
    */
   struct Iterator {
     // TODO(probiuss): desctiprion below.
-    // using iterator_category = std::bidirectional_iterator_tag;
-    using difference_type = std::ptrdiff_t;
+    using iterator_category = std::bidirectional_iterator_tag;
     using value_type = List::value_type;
+    using difference_type = std::ptrdiff_t;
     using pointer = value_type *;
     using reference = value_type &;
 
@@ -175,11 +368,20 @@ class List {
       return *this;
     }
 
+    /* ** Non-member functions ** */
+
     bool operator==(Iterator const &other) const {
       return (node_ == other.node_);
     }
-
     bool operator!=(Iterator const &other) const { return !(other == *this); }
+
+    // TODO(probiuss): in question !!!
+    // bool operator<(Iterator const &other);
+    // bool operator<=(Iterator const &other);
+    // bool operator>(Iterator const &other);
+    // bool operator>=(Iterator const &other);
+
+    /* ** ******************** ** */
 
     /**
      * @brief Iterator transition (forward) to the next element.
@@ -190,6 +392,8 @@ class List {
       node_ = node_->next_;
       return *this;
     }
+
+    // -------------------------------------------------------
 
     /**
      * @brief Iterator transition (forward) to the next element.
@@ -207,9 +411,10 @@ class List {
       node_ = node_->prev_;
       return *this;
     }
+
     // Iterator operator--(int);
 
-    T &operator*() const {
+    reference operator*() const {
       if (node_ == 0)
         throw std::out_of_range(
             "[ERROR] tried to dereference an empty iterator");
@@ -218,6 +423,8 @@ class List {
 
     Node *node_;
   };  // Iterator
+
+  // -------------------------------------------------------
 
   /**
    * @brief IteratorConst structure for a list.
@@ -244,102 +451,21 @@ class List {
     const_node_type *node_;
   };  // IteratorConst
 
+  struct IteratorReverse {
+    node_type *node_;
+  };  // IteratorReverse
+
+  // -------------------------------------------------------
+
+  // TODO(probiuss): Prepare iterator reverse
   node_type *head_;
+  size_t size_;
+  node_allocator allocator;
   // node_type *tail_;
 
   // Iterator head_iter_;
   // Iterator tail_iter_;
-  size_t size_;
 };  // List
-
-/*************************************************/
-/* ********             LIST            ******** */
-/*************************************************/
-
-template <typename T>
-void List<T>::destroy() {
-  node_type *tmp_type = begin().node_;
-  auto finish = end().node_;
-
-  for (auto start = tmp_type; start != finish;) {
-    start = start->next_;
-    delete tmp_type;
-    tmp_type = start;
-  }
-  delete tmp_type;
-}
-
-// -------------------------------------------------------
-
-template <typename T>
-List<T>::List() : head_(new node_type{}), size_(0U) {
-  // AllocateMemory();
-}
-
-// -------------------------------------------------------
-
-template <typename T>
-List<T>::List(size_type size) : size_(size) {
-  while (size > 0) {
-    push_back(value_type());
-    --size;
-  }
-}
-
-// -------------------------------------------------------
-
-template <typename T>
-List<T>::List(const List &other) : head_(nullptr), size_(0U) {
-  for (auto value : other) {
-    push_back(value);
-    ++size_;
-  }
-}
-
-// -------------------------------------------------------
-
-template <typename T>
-List<T>::~List() {
-  destroy();
-}
-
-// -------------------------------------------------------
-
-template <typename T>
-List<T>::List(std::initializer_list<T> init_list)
-    :  // head_(nullptr), tail_(nullptr), head_iter_(nullptr),
-       // tail_iter_(nullptr),
-      head_(new Node()),
-      size_(0U) {
-  // AllocateMemory();
-  // auto start = init_list.begin();
-  // for (; start != init_list.end(); ++start) push_back(*start);
-  for (auto const &item : init_list) {
-    push_back(item);
-  }
-}
-
-// -------------------------------------------------------
-
-template <typename T>
-List<T> &List<T>::operator=(List const &other) {
-  size_ = 0;
-  head_ = nullptr;
-  (void)other;
-  return (*this);
-}
-
-// -------------------------------------------------------
-
-template <typename T>
-List<T> &List<T>::operator=(List &&other) {
-  size_ = 0;
-  head_ = nullptr;
-  if (this != other) {
-    // TODO(probiuss): release
-  }
-  return (*this);
-}
 
 }  // namespace s21
 
