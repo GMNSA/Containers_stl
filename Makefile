@@ -19,7 +19,7 @@ all: test
 
 test: rebuild
 	cd ./tests && rm -rf BUILD && cmake -B ./BUILD && make -C ./BUILD
-	./test_containers.out # --gtest_filter=TestList.FontAndBack
+	./test_containers.out  --gtest_filter=TestList.Erase
 	rm -rf ./tests/BUILD
 
 

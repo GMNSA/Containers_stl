@@ -10,9 +10,62 @@
 // #include <sstream>
 // #include <string>
 
+template <typename T>
+void print_list(T const &lst) {
+  std::cout << "\n" << std::endl;
+  for (auto const &value : lst) std::cout << value << std::endl;
+}
+
 TEST_F(TestList, Foo1) { ASSERT_EQ(1, 1); }
 
 // -------------------------------------------------------
+
+TEST_F(TestList, Erase) {
+  s21::List<int> lst{1, 2, 3};
+
+  print_list(lst);
+
+  s21::List<int>::iterator lst_iter = lst.begin();
+
+  ASSERT_EQ(*lst_iter, 1);
+  ++lst_iter;
+  ASSERT_EQ(*lst_iter, 2);
+
+  lst.erase(lst_iter);
+
+  lst_iter = lst.begin();
+  ASSERT_EQ(*lst_iter, 1);
+
+  ++lst_iter;
+
+  ASSERT_EQ(*lst_iter, 3);
+  ASSERT_EQ(lst.size(), 2);
+
+  print_list(lst);
+
+  lst_iter = lst.begin();
+
+  lst.erase(lst_iter);
+
+  ASSERT_EQ(lst.font(), 3);
+
+  print_list(lst);
+
+  lst_iter = lst.begin();
+
+  lst.erase(lst_iter);
+
+  ASSERT_EQ(lst.begin(), lst.end());
+
+  lst_iter = lst.begin();
+
+  lst.erase(lst_iter);  // Orignal erase last point (head, end) !!!
+
+  ASSERT_EQ(lst.begin(), lst.end());
+}
+
+// -------------------------------------------------------
+
 TEST_F(TestList, IsEmpty) {
   s21::List<int> lst;
   s21::List<int> lst2;

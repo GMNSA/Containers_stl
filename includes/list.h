@@ -36,7 +36,7 @@ class List {
  public:
   using value_type = T;
   using const_value_type = T const;
-  using reference = T &;
+  using value_reference = T &;
   using const_reference = T const &;
   using iterator = Iterator;
   // using const_iterator = IteratorConst;
@@ -45,14 +45,46 @@ class List {
   using const_node_type = Node const;
 
  public:
-  List();
-  explicit List(size_type size);
-  List(const List &other);
-  List(std::initializer_list<T> init_list);
+  List() : head_(new node_type{}), size_(0U) {}
 
-  List &operator=(List const &other);
-  List &operator=(List &&other);
-  ~List();
+  explicit List(size_type size) {
+    while (size > 0) {
+      push_back(value_type());
+      --size;
+    }
+  }
+
+  List(const List &other) {
+    for (auto value : other) {
+      push_back(value);
+      ++size_;
+    }
+  }
+
+  List(std::initializer_list<value_type> init_list)
+      : head_(new Node()), size_(0U) {
+    for (auto const &item : init_list) {
+      push_back(item);
+    }
+  }
+
+  List &operator=(List const &other) {
+    size_ = 0;
+    head_ = nullptr;
+    (void)other;
+    return (*this);
+  }
+
+  List &operator=(List &&other) {
+    size_ = 0;
+    head_ = nullptr;
+    if (this != other) {
+      // TODO(probiuss): release
+    }
+    return (*this);
+  }
+
+  ~List() { destroy(); }
 
   friend std::ostream &operator<<(std::ostream &os, List const &lst) {
     for (auto const &value : lst) {
@@ -79,15 +111,22 @@ class List {
     return Iterator(tmp);
   }
 
-  reference font() { return *begin(); }
-  reference back() { return *end(); }
+  value_reference font() { return *begin(); }
+  value_reference back() { return *end(); }
   void push_front(T value) { insert(begin(), value); }
   void push_back(T value) { insert(end(), value); }
 
   void erase(iterator pos) noexcept {
-    (void)pos;
     if (pos != end()) {
-      // TODO(probiuss): unattach point, free, --size
+      node_type *tmp = pos.node_;
+      pos.node_->prev_->next_ = pos.node_->next_;
+      pos.node_->next_->prev_ = pos.node_->prev_;
+
+      tmp->prev_ = nullptr;
+      tmp->next_ = nullptr;
+      delete tmp;
+      tmp = nullptr;
+      --size_;
     }
   }
 
@@ -119,7 +158,17 @@ class List {
   }
 
  private:
-  void destroy();
+  void destroy() {
+    node_type *tmp_type = begin().node_;
+    auto finish = end().node_;
+
+    for (auto start = tmp_type; start != finish;) {
+      start = start->next_;
+      delete tmp_type;
+      tmp_type = start;
+    }
+    delete tmp_type;
+  }
 
   /**
    * @brief A node of a doubly linked list.
@@ -164,7 +213,7 @@ class List {
     using difference_type = std::ptrdiff_t;
     using value_type = List::value_type;
     using pointer = value_type *;
-    using reference = value_type &;
+    using value_reference = value_type &;
 
     // Dont't use an empty iterator.
     Iterator() = delete;
@@ -209,7 +258,7 @@ class List {
     }
     // Iterator operator--(int);
 
-    T &operator*() const {
+    value_reference operator*() const {
       if (node_ == 0)
         throw std::out_of_range(
             "[ERROR] tried to dereference an empty iterator");
@@ -235,7 +284,7 @@ class List {
     using difference_type = std::ptrdiff_t;
     using value_type = List::value_type;
     using pointer = const_value_type *;
-    using reference = const_value_type &;
+    using value_reference = const_value_type &;
 
     IteratorConst() = delete;
     explicit IteratorConst(const_node_type *node) : node_(node) {}
@@ -251,95 +300,6 @@ class List {
   // Iterator tail_iter_;
   size_t size_;
 };  // List
-
-/*************************************************/
-/* ********             LIST            ******** */
-/*************************************************/
-
-template <typename T>
-void List<T>::destroy() {
-  node_type *tmp_type = begin().node_;
-  auto finish = end().node_;
-
-  for (auto start = tmp_type; start != finish;) {
-    start = start->next_;
-    delete tmp_type;
-    tmp_type = start;
-  }
-  delete tmp_type;
-}
-
-// -------------------------------------------------------
-
-template <typename T>
-List<T>::List() : head_(new node_type{}), size_(0U) {
-  // AllocateMemory();
-}
-
-// -------------------------------------------------------
-
-template <typename T>
-List<T>::List(size_type size) : size_(size) {
-  while (size > 0) {
-    push_back(value_type());
-    --size;
-  }
-}
-
-// -------------------------------------------------------
-
-template <typename T>
-List<T>::List(const List &other) : head_(nullptr), size_(0U) {
-  for (auto value : other) {
-    push_back(value);
-    ++size_;
-  }
-}
-
-// -------------------------------------------------------
-
-template <typename T>
-List<T>::~List() {
-  destroy();
-}
-
-// -------------------------------------------------------
-
-template <typename T>
-List<T>::List(std::initializer_list<T> init_list)
-    :  // head_(nullptr), tail_(nullptr), head_iter_(nullptr),
-       // tail_iter_(nullptr),
-      head_(new Node()),
-      size_(0U) {
-  // AllocateMemory();
-  // auto start = init_list.begin();
-  // for (; start != init_list.end(); ++start) push_back(*start);
-  for (auto const &item : init_list) {
-    push_back(item);
-  }
-}
-
-// -------------------------------------------------------
-
-template <typename T>
-List<T> &List<T>::operator=(List const &other) {
-  size_ = 0;
-  head_ = nullptr;
-  (void)other;
-  return (*this);
-}
-
-// -------------------------------------------------------
-
-template <typename T>
-List<T> &List<T>::operator=(List &&other) {
-  size_ = 0;
-  head_ = nullptr;
-  if (this != other) {
-    // TODO(probiuss): release
-  }
-  return (*this);
-}
 
 }  // namespace s21
 
