@@ -33,3 +33,7 @@
 
 TEST
 HELP*
+.cache
+.ccls-cache
+tags
+vgcore*
