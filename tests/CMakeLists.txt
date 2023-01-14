@@ -10,9 +10,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/../../)
 set(OUT_NAME test_containers.out)
 add_compile_definitions(FOR_TEST)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -lstdc++ -O0 -Wall -fprofile-arcs -ftest-coverage -fsanitize=address")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -lstdc++ -O0 -Wall -fprofile-arcs -ftest-coverage ")
 set(CMAKE_CXX_OUTPUT_EXTENSION_REPLACE 1)
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -Wall -fprofile-arcs -ftest-coverage -fsanitize=address")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -Wall -fprofile-arcs -ftest-coverage ")
 
 find_package(GTest REQUIRED) # !!!
 find_package(Threads REQUIRED)

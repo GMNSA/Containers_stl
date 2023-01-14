@@ -2,7 +2,7 @@
 /* Copyright 2023 *********************************************************** */
 /*                                              ############       ####       */
 /*                                              ############       ####       */
-/*          *.h                                             ####       ####   */
+/*          list.h                                          ####       ####   */
 /*                                                          ####       ####   */
 /*   By: probiuss@student.21-school.ru              ########           ####   */
 /*                                                  ########           ####   */
@@ -27,7 +27,7 @@ namespace s21 {
 
 // -------------------------------------------------------
 
-template <typename T, typename A = std::allocator<T>>
+template <typename T, typename Alloc = std::allocator<T>>
 class List {
  private:
   struct Node;
@@ -47,8 +47,8 @@ class List {
   using const_pointer = value_type const *;
   using iterator = Iterator;
   using reverse_iterator = IteratorReverse;
-  using node_allocator =
-      typename std::allocator_traits<A>::template rebind_alloc<Node>;
+  // using node_allocator =
+  //     typename std::allocator_traits<A>::template rebind_alloc<Node>;
   // using const_iterator = IteratorConst;
   // using reverse_iterator = std::reverse_iterator<iterator>;
   // using const_reverse_iterator = std::reverse_iterator<const_iterator>;
@@ -60,16 +60,16 @@ class List {
   using const_node_type = Node const;
 
  public:
-  List() : head_(new node_type{}), size_(0U) {}
+  List() : head_(new node_type()), size_(0U) {}
 
   explicit List(size_type size) {
     while (size > 0) {
       push_back(value_type());
-      --size;
+      ++size;
     }
   }
 
-  List(const List &other) {
+  List(const List &other) : head_(new node_type()), size_(0U) {
     for (auto value : other) {
       push_back(value);
       ++size_;
@@ -84,16 +84,22 @@ class List {
   }
 
   List(std::initializer_list<value_type> init_list)
-      : head_(new Node()), size_(0U) {
+      : head_(new node_type()), size_(0U) {
     for (auto const &item : init_list) {
       push_back(item);
     }
   }
 
   List &operator=(List const &other) {
-    size_ = 0;
-    head_ = nullptr;
-    (void)other;
+    if (this != &other) {
+      Destroy();
+      head_ = new node_type();
+      size_ = 0;
+      for (auto const &item : other) {
+        push_back(item);
+      }
+    }
+
     return (*this);
   }
 
@@ -110,9 +116,32 @@ class List {
 
   ~List() { Destroy(); }
 
-  // void assign(std::initializer_list<value_type> lst);
+  /**
+   * @brief  Erases elements from a list and copies a
+   *            new set of elements to a target list.
+   *
+   * @param lst -> The initializer_list that contains the elements to be
+   *                    inserted.
+   */
+  void assign(std::initializer_list<value_type> lst) {
+    List tmp(lst);
+    *this = std::move(tmp);
+  }
 
-  // void assign(size_type n_elem, value_type const &val);
+  /**
+   * @brief  Erases elements from a list and copies a
+   *            new set of elements to a target list.
+   *
+   * @param n_elem -> The number of copies of an element being
+   *                        inserted into the list.
+   * @param val -> The value of the element being inserted into the list.
+   */
+  void assign(size_type n_elem, value_type const &val) {
+    List tmp;
+    for (unsigned i = 0; i < n_elem; ++i) tmp.push_back(val);
+    *this = std::move(tmp);
+  }
+
   // void assign(InputIterator first, InputIterator last);
 
   // -------------------------------------------------------
@@ -211,6 +240,50 @@ class List {
 
   // -------------------------------------------------------
 
+  /**
+   * @brief -> Transfer elmenets from one list to another.
+   * @detail -> Transfer all the elements of list x ino
+   *            another list at some position.
+   *
+   * @param -> Position Specifies the position where the
+   *                elements are to be trasferred.
+   * @param other -> It specifies a list object ofthe same type which is to be
+   *                transferred.
+   */
+  void splice(iterator position, List<T, Alloc> &other) {
+    (void)position;
+    if (!other.empty()) {
+      // data: 1 2 3     8 9 7 6
+      // result: 1 8 9 7 6 2 3
+      // [1 - t_left] , [3 - t_right],  [8 9 7 6 - t_in_head]
+      auto t_left = position.node_->prev_;
+      auto t_right = position.node_;
+      auto t_in_head = other.head_->next_;
+
+      t_right->prev_ = t_in_head->prev_->prev_;
+      t_in_head->prev_->prev_->next_ = t_right;
+
+      t_left->next_ = t_in_head;
+      t_in_head->prev_ = t_left;
+
+      other.head_->next_ = other.head_;
+      other.head_->prev_ = other.head_;
+      size_ += other.size();
+      other.size_ = 0;
+    }
+  }
+
+  // -------------------------------------------------------
+
+  void splice(iterator position, List<T, Alloc> &&other) {
+    (void)position;
+    if (!other.empty()) {
+      position.node_->AddPrev(other.head_);
+    }
+  }
+
+  // -------------------------------------------------------
+
   reference font() { return *begin(); }
   reference back() { return *(--end()); }
   void push_front(value_type value) { insert(begin(), value); }
@@ -263,7 +336,10 @@ class List {
 
   bool empty() { return (end() == begin()); }
   unsigned size() const { return size_; }
-  size_type max_size() const { return allocator.max_size(); }
+  // size_type max_size() const { return allocator.max_size(); }
+  size_type max_size() const {
+    return std::numeric_limits<size_type>::max() / 2 / sizeof(node_type);
+  }
 
   /* ** ***** ******** ***** ** */
 
@@ -291,7 +367,7 @@ class List {
   }
 
   inline reverse_iterator rend() const {
-    return IteratorReverse(head_->next_);
+    return IteratorReverse(head_);
     // return tail_iter_;
   }
 
@@ -299,6 +375,7 @@ class List {
 
  private:
   void Destroy() {
+    if (head_ == nullptr) return;
     node_type *tmp_type = begin().node_;
     auto finish = end().node_;
 
@@ -306,8 +383,10 @@ class List {
       start = start->next_;
       delete tmp_type;
       tmp_type = start;
+      --size_;
     }
     delete tmp_type;
+    head_ = nullptr;
   }
 
   // -------------------------------------------------------
@@ -447,11 +526,93 @@ class List {
     IteratorConst() = delete;
     explicit IteratorConst(const_node_type *node) : node_(node) {}
     // explicit IteratorConst(const_iterator &iter) : node_(iter.node_) {}
+    IteratorConst(IteratorConst const &other) : node_(other.node_) {}
+    IteratorConst &operator=(IteratorConst const &other) {
+      node_ = other.node_;
+      return *this;
+    }
+    reference operator*() const {
+      if (node_ == 0)
+        throw std::out_of_range(
+            "[ERROR] tried to dereference an empty iterator");
+      return node_->value_;
+    }
+
+    bool operator==(IteratorConst const &other) const {
+      return (node_ == other.node_);
+    }
+
+    bool operator!=(IteratorConst const &other) const {
+      return !(other == *this);
+    }
+
+    IteratorConst &operator++() noexcept {
+      node_ = node_->prev_;
+      return *this;
+    }
+
+    IteratorConst operator++(int) noexcept {
+      Iterator tmp(node_);
+      ++(*this);
+
+      return tmp;
+    }
+
+    IteratorConst &operator--() {
+      node_ = node_->next_;
+      return *this;
+    }
 
     const_node_type *node_;
   };  // IteratorConst
 
+  // -------------------------------------------------------
+
   struct IteratorReverse {
+    using difference_type = std::ptrdiff_t;
+    using value_type = List::value_type;
+    using pointer = const_value_type *;
+    using reference = const_value_type &;
+
+    IteratorReverse() = delete;
+    explicit IteratorReverse(node_type *node) : node_(node) {}
+    IteratorReverse(IteratorReverse const &other) : node_(other.node_) {}
+    IteratorReverse &operator=(IteratorReverse const &other) {
+      node_ = other.node_;
+      return *this;
+    }
+    reference operator*() const {
+      if (node_ == 0)
+        throw std::out_of_range(
+            "[ERROR] tried to dereference an empty iterator");
+      return node_->value_;
+    }
+
+    bool operator==(IteratorReverse const &other) const {
+      return (node_ == other.node_);
+    }
+
+    bool operator!=(IteratorReverse const &other) const {
+      return !(other == *this);
+    }
+
+    IteratorReverse &operator++() noexcept {
+      node_ = node_->prev_;
+      return *this;
+    }
+
+    IteratorReverse operator++(int) noexcept {
+      Iterator tmp(node_);
+      ++(*this);
+
+      return tmp;
+    }
+
+    IteratorReverse &operator--() {
+      node_ = node_->next_;
+      return *this;
+    }
+
     node_type *node_;
   };  // IteratorReverse
 
@@ -460,7 +621,7 @@ class List {
   // TODO(probiuss): Prepare iterator reverse
   node_type *head_;
   size_t size_;
-  node_allocator allocator;
+  // node_allocator allocator;
   // node_type *tail_;
 
   // Iterator head_iter_;
