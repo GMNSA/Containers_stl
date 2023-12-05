@@ -1,55 +1,29 @@
-CC=gcc
-CXXFLAGS:=-g -std=c++17 -lstdc++ -Wall -Wextra -Werror -fsanitize=address
-GCOVFLAGS:=-ftest-coverage -fprofile-arcs
+.PHONY: all clean rebuild tests check coverage
+
 OS:=
 
 ifeq ($(shell uname), Linux)
-	LDFLAGS:=-lgcov -lpthread -lsubunit -lrt -lm
-	OS=Linux
+  OS=Linux
 endif
 
 ifeq ($(shell uname), Darwin)
-	# LDFLAGS:=-lgcov -lpthread -fprofile-args -lm
-	OS=Darwin
+  OS=Darwin
 endif
 
-HEADERS_DIR:= ./includes ./tests/includes
 
-all: test
+all: tests
 
-test: rebuild
-	cd ./tests && rm -rf BUILD && cmake -B ./BUILD && make -C ./BUILD
-	./test_containers.out # --gtest_filter=TestList.FontAndBack
-	rm -rf ./tests/BUILD
-
+tests:
+	mkdir -p build
+	cd ./build; cmake ..
+	cd ./build; cmake --build .
+	./build/bin/containers_stl
 
 rebuild: clean all
 
-gcov_report: test
-	lcov -c -d  gcov_obj/. -o gcov_obj/coverage.info
-	genhtml gcov_obj/coverage.info --output-directory out
-ifeq ($(OS), Linux)
-	firefox ./out/index.html
-else
-	open ./out/index.html
-endif
-
-
 clean:
-	rm -f ./s21_containers.a
-	rm -f ./list.hpp
-	rm -f ./objects/*
-	rm -f ./test_containers.out
-	rm -rf ./lib
-	rm -rf ./tests/BUILD
-	rm -rf ./tests/Makefile
-	rm -rf ./out
-	rm -rf ./gcov_obj/*
+	rm -rf ./build
 
-clang_check:
-	done
-	echo "~~~ $@ DONE ~~~";
-
-clang_fix:
-
-.PHONY: all clean rebuild  clang_check clang_fix
+check:
+	clang-format -i *.h
+	clang-format -i test/*.cc
